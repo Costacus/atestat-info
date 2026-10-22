@@ -11,15 +11,15 @@
 <header>
   <h1>Prinde Phishingul</h1>
   <nav>
-    <button class="tab active" data-target="info">Informații</button>
-    <button class="tab" data-target="joc">Joc</button>
+    <button onclick="arata('info')">Informații</button>
+    <button onclick="arata('joc')">Joc</button>
   </nav>
 </header>
 
 <main>
 
-  <!-- ================= CATEGORIA 1: INFORMAȚII ================= -->
-  <section id="info" class="panel active">
+  <!-- informatii -->
+  <section id="info" class="panel activ">
     <h2>Ce este phishing-ul?</h2>
     <p>Phishing-ul este o tehnică de înșelăciune online prin care un atacator se dă drept o persoană sau o companie de încredere (bancă, curier, angajator, prieten) pentru a te determina să dezvălui date sensibile, să dai click pe un link periculos sau să trimiți bani.</p>
 
@@ -72,18 +72,16 @@
       <li>Activează autentificarea în doi pași (2FA) și folosește un manager de parole.</li>
       <li>Raportează mesajul și șterge-l. Dacă ai dat deja datele, schimbă parola și contactează banca.</li>
     </ul>
-
-    <p><button class="primary" data-target="joc">Gata de test? Începe jocul →</button></p>
   </section>
 
-  <!-- ================= CATEGORIA 2: JOCUL ================= -->
+  <!-- jocul -->
   <section id="joc" class="panel">
 
     <div id="start">
       <h2>Ești de serviciu la Securitate</h2>
-      <p>La fiecare sesiune primești 10 scenarii alese aleatoriu. În fiecare, analizează mesajul, apasă pe elementul suspect și apoi pe „Raportează”. Dacă ți se pare că totul este în regulă, apasă „Nu e nimic suspect”. Atenție: unele mesaje sunt legitime!</p>
-      <p>Răspuns corect = 1 punct. Răspuns greșit = 0 puncte și treci mai departe.</p>
-      <button class="primary" id="btnStart">Începe sesiunea</button>
+      <p>La fiecare sesiune primești 10 scenarii alese aleatoriu. Analizează mesajul, apasă pe elementul suspect și apoi pe „Raportează”. Dacă ți se pare că totul este în regulă, apasă „Nu e nimic suspect”. Atenție: unele mesaje sunt legitime</p>
+      <p>Răspuns corect = 1 punct. Răspuns greșit = 0 puncte.</p>
+      <button class="primary" id="btnStart" onclick="porneste()">Începe sesiunea</button>
     </div>
 
     <div id="game" hidden>
@@ -94,13 +92,13 @@
       <h2 id="titluScenariu"></h2>
       <div class="card" id="mesaj"></div>
       <div class="actions" id="actiuni">
-        <button class="primary" id="btnRaporteaza" disabled>Raportează elementul selectat</button>
-        <button id="btnOk">Nu e nimic suspect</button>
+        <button class="primary" id="btnRaporteaza" onclick="raporteaza()" disabled>Raportează elementul selectat</button>
+        <button id="btnOk" onclick="raspunde(-1)">Nu e nimic suspect</button>
       </div>
       <div id="feedback" hidden>
         <p id="rezultat"></p>
         <p id="explicatie"></p>
-        <button class="primary" id="btnUrmator">Următorul</button>
+        <button class="primary" id="btnUrmator" onclick="urmator()">Următorul</button>
       </div>
     </div>
 
@@ -109,286 +107,13 @@
       <p class="scorFinal" id="scorFinal"></p>
       <p id="mesajFinal"></p>
       <div id="greseli"></div>
-      <button class="primary" id="btnReia">Joacă din nou</button>
+      <button class="primary" id="btnReia" onclick="porneste()">Joacă din nou</button>
     </div>
 
   </section>
 </main>
 
-<footer>
-  <p>Proiect educațional. Toate mesajele din joc sunt fictive.</p>
-</footer>
 
-<script>
-/* ---------- Navigare între categorii ---------- */
-function arata(id) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.target === id));
-  window.scrollTo(0, 0);
-}
-document.querySelectorAll('[data-target]').forEach(b => b.addEventListener('click', () => arata(b.dataset.target)));
-
-/* ---------- Scenarii ----------
-   parts: [eticheta, text]; rau = indexul elementului suspect, sau -1 daca mesajul e legitim */
-const SCENARII = [
-  { titlu: "Email: schimbă-ți parola", rau: 0,
-    parts: [
-      ["De la", "Suport Microsoft <no-reply@micros0ft-security.com>"],
-      ["Subiect", "Parola contului tău expiră astăzi"],
-      ["Mesaj", "Bună, parola contului tău va expira în câteva ore. Apasă butonul de mai jos pentru a o schimba."],
-      ["Buton", "[ Schimbă parola ]"]
-    ],
-    expl: "Domeniul „micros0ft-security.com” folosește cifra 0 în loc de litera „o” și nu aparține Microsoft." },
-
-  { titlu: "SMS de la curier", rau: 2,
-    parts: [
-      ["Expeditor", "+40 7•• ••• •••"],
-      ["Mesaj", "Coletul tău nu a putut fi livrat. Reprogramează livrarea plătind taxa de 2 lei:"],
-      ["Link", "http://curier-colet.top/plata"]
-    ],
-    expl: "Curierii reali nu cer plata unei taxe printr-un link de pe un domeniu ciudat (.top). Taxa mică e momeala pentru a-ți fura datele cardului." },
-
-  { titlu: "Email de la bancă", rau: 2,
-    parts: [
-      ["De la", "Alerte Banca <alerte@banca-exemplu.ro>"],
-      ["Subiect", "Activitate neobișnuită pe contul tău"],
-      ["Mesaj", "Contul va fi blocat definitiv dacă nu răspunzi în 30 de minute cu codul PIN al cardului și codul CVV."]
-    ],
-    expl: "Nicio bancă nu îți cere PIN-ul sau CVV-ul prin email. În plus, termenul foarte scurt este o tehnică de presiune." },
-
-  { titlu: "Notificare de securitate", rau: -1,
-    parts: [
-      ["De la", "Google <no-reply@accounts.google.com>"],
-      ["Subiect", "Alertă de securitate: autentificare nouă"],
-      ["Mesaj", "S-a făcut o autentificare nouă în contul tău de pe un dispozitiv Windows. Dacă ai fost tu, nu trebuie să faci nimic. Dacă nu ai fost tu, accesează direct contul tău din aplicație sau din browser pentru a verifica activitatea."]
-    ],
-    expl: "Mesaj legitim: domeniul este corect, nu cere date, nu conține linkuri suspecte și nu creează presiune." },
-
-  { titlu: "Mesaj de la director", rau: 2,
-    parts: [
-      ["De la", "Ion Popescu (Director) <i.popescu@firma-ta.ro>"],
-      ["Subiect", "Urgent – discret"],
-      ["Mesaj", "Sunt în ședință și nu pot vorbi. Cumpără acum 5 carduri cadou de 100 € și trimite-mi codurile aici. Nu spune nimănui, te rambursez diseară."]
-    ],
-    expl: "Este un atac BEC clasic: cerere urgentă și secretă de carduri cadou. Orice cerere financiară neobișnuită trebuie confirmată printr-un alt canal (telefon)." },
-
-  { titlu: "Email de la ANAF", rau: 3,
-    parts: [
-      ["De la", "ANAF <rambursari@anaf.ro>"],
-      ["Subiect", "Ai drept la o rambursare de 842 RON"],
-      ["Text link", "https://www.anaf.ro/rambursare"],
-      ["Destinația reală a linkului (la hover)", "http://anaf-rambursari.xyz/formular"]
-    ],
-    expl: "Textul linkului arată adresa oficială, dar destinația reală este un domeniu străin. Trecând cu mouse-ul peste link îți dai seama de înșelătorie." },
-
-  { titlu: "Factură atașată", rau: 3,
-    parts: [
-      ["De la", "Contabilitate <contabilitate@furnizor-exemplu.ro>"],
-      ["Subiect", "Factura nr. 2041 – scadentă mâine"],
-      ["Mesaj", "Bună ziua, găsiți atașată factura. Vă rugăm să o deschideți urgent."],
-      ["Atașament", "factura_2041.pdf.exe (1,2 MB)"]
-    ],
-    expl: "Fișierul are dublă extensie: în realitate este un program (.exe), nu un PDF." },
-
-  { titlu: "Confirmare comandă", rau: -1,
-    parts: [
-      ["De la", "Magazin Exemplu <comenzi@magazin-exemplu.ro>"],
-      ["Subiect", "Comanda #48213 a fost expediată"],
-      ["Mesaj", "Salut, Maria! Comanda ta plasată ieri a fost predată curierului. O poți urmări din contul tău, intrând direct pe magazin-exemplu.ro."]
-    ],
-    expl: "Mesaj legitim: te cheamă pe nume, se referă la o comandă pe care chiar ai făcut-o și nu îți cere nicio informație confidențială." },
-
-  { titlu: "Mesaj WhatsApp", rau: 1,
-    parts: [
-      ["Expeditor", "Număr necunoscut"],
-      ["Mesaj", "Salut mamă, mi-am stricat telefonul și am un număr nou. Poți să-mi trimiți urgent 1500 lei? Îți explic mai târziu."],
-      ["Observație", "Prima dată când acest număr îți scrie."]
-    ],
-    expl: "Este o înșelătorie de tip „mamă, am număr nou”. Verifică întotdeauna sunând persoana pe numărul vechi, înainte de a trimite bani." },
-
-  { titlu: "Ai câștigat un premiu!", rau: 1,
-    parts: [
-      ["De la", "Concurs Național <premii@castigator-zilei.info>"],
-      ["Mesaj", "FELICITĂRI! Ai fost ales câștigătorul unui telefon nou! Plătește doar taxa de livrare de 9 lei cu cardul tău."],
-      ["Termen", "Oferta expiră în 10 minute."]
-    ],
-    expl: "Nu te-ai înscris la niciun concurs. Premiul este momeala; taxa de livrare servește pentru a-ți fura datele cardului." },
-
-  { titlu: "Mesaj de la IT", rau: 0,
-    parts: [
-      ["Salut", "Stimate utilizator,"],
-      ["De la", "Departament IT <it-support@firma-ta.ro>"],
-      ["Mesaj", "Din cauza unei actualizări, ți se cere să îți confirmi parola în formularul din intranet."]
-    ],
-    expl: "Salutul generic („Stimate utilizator”) trădează un mesaj trimis în masă, împreună cu cererea de a confirma parola. Departamentul IT nu cere parola." },
-
-  { titlu: "Invitație la ședință", rau: -1,
-    parts: [
-      ["De la", "Elena Dumitrescu <elena.dumitrescu@firma-ta.ro>"],
-      ["Subiect", "Ședința de echipă – joi, ora 10:00"],
-      ["Mesaj", "Bună, am programat ședința săptămânală în sala Dunărea. Ordinea de zi este cea de săptămâna trecută. Ne vedem acolo."]
-    ],
-    expl: "Mesaj legitim: expeditor din domeniul firmei, conținut obișnuit, fără linkuri sau cereri neobișnuite." },
-
-  { titlu: "Parcare cu cod QR", rau: 1,
-    parts: [
-      ["Loc", "Parcare publică, automat de plată"],
-      ["Observație", "Peste codul QR original a fost lipit un autocolant cu alt cod QR, cu textul „Plătește parcarea rapid”."],
-      ["Link după scanare", "https://plata-parcare-rapida.example/card"]
-    ],
-    expl: "Escrocii lipesc coduri QR false peste cele reale (quishing). Un autocolant lipit peste codul original este un semnal clar de alarmă." },
-
-  { titlu: "Pagina de autentificare a băncii", rau: 1,
-    parts: [
-      ["Titlu pagină", "Autentificare Internet Banking"],
-      ["Adresa din browser", "https://www.banca-ta.ro.login-secure.com/autentificare"],
-      ["Formular", "Utilizator, parolă, buton „Intră în cont”"]
-    ],
-    expl: "Domeniul real este „login-secure.com”; „banca-ta.ro” este doar un subdomeniu pus pe post de momeală." },
-
-  { titlu: "Mesaj de la un prieten", rau: 1,
-    parts: [
-      ["De la", "Andrei (prieten, cont Facebook real)"],
-      ["Mesaj", "Hei, ai văzut videoul ăsta cu tine? 😂 Nu-mi vine să cred"],
-      ["Link", "bit.ly/x7Qa9"]
-    ],
-    expl: "Contul prietenului poate fi spart. Mesajul vag cu link scurtat și curiozitate este o tehnică clasică; confirmă cu prietenul pe alt canal." }
-];
-
-/* ---------- Logica jocului ---------- */
-const NR_SCENARII = 10;
-let sesiune = [], idx = 0, scor = 0, selectat = null, greseli = [], blocat = false;
-
-const $ = id => document.getElementById(id);
-
-function amesteca(arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function porneste() {
-  sesiune = amesteca(SCENARII).slice(0, NR_SCENARII);
-  idx = 0; scor = 0; greseli = [];
-  $('start').hidden = true;
-  $('final').hidden = true;
-  $('game').hidden = false;
-  afiseaza();
-}
-
-function afiseaza() {
-  const s = sesiune[idx];
-  selectat = null; blocat = false;
-  $('progres').textContent = `Scenariul ${idx + 1} din ${sesiune.length}`;
-  $('scor').textContent = `Scor: ${scor}`;
-  $('titluScenariu').textContent = s.titlu;
-  $('feedback').hidden = true;
-  $('actiuni').hidden = false;
-  $('btnRaporteaza').disabled = true;
-
-  const card = $('mesaj');
-  card.innerHTML = '';
-  s.parts.forEach((p, i) => {
-    const el = document.createElement('div');
-    el.className = 'part';
-    el.tabIndex = 0;
-    el.dataset.i = i;
-    const et = document.createElement('span');
-    et.className = 'label';
-    et.textContent = p[0] + ': ';
-    const tx = document.createElement('span');
-    tx.textContent = p[1];
-    el.append(et, tx);
-    el.addEventListener('click', () => alege(i));
-    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alege(i); } });
-    card.appendChild(el);
-  });
-}
-
-function alege(i) {
-  if (blocat) return;
-  selectat = i;
-  document.querySelectorAll('.part').forEach(el => el.classList.toggle('selected', +el.dataset.i === i));
-  $('btnRaporteaza').disabled = false;
-}
-
-function raspunde(alegere) { // alegere: index sau -1 (nimic suspect)
-  if (blocat) return;
-  blocat = true;
-  const s = sesiune[idx];
-  const corect = alegere === s.rau;
-
-  document.querySelectorAll('.part').forEach(el => {
-    const i = +el.dataset.i;
-    el.classList.remove('selected');
-    if (i === s.rau) el.classList.add('correct');
-    else if (i === alegere) el.classList.add('wrong');
-  });
-
-  if (corect) {
-    scor++;
-    $('rezultat').textContent = 'Corect! +1 punct';
-    $('rezultat').className = 'ok';
-  } else {
-    $('rezultat').textContent = 'Greșit. 0 puncte';
-    $('rezultat').className = 'bad';
-    greseli.push({
-      titlu: s.titlu,
-      alesul: alegere === -1 ? 'Ai considerat că nu e nimic suspect' : `Ai ales: „${s.parts[alegere][0]}”`,
-      corect: s.rau === -1 ? 'Mesajul era legitim' : `Elementul suspect: „${s.parts[s.rau][0]}”`,
-      expl: s.expl
-    });
-  }
-  $('explicatie').textContent = s.expl;
-  $('scor').textContent = `Scor: ${scor}`;
-  $('actiuni').hidden = true;
-  $('feedback').hidden = false;
-  $('btnUrmator').textContent = idx === sesiune.length - 1 ? 'Vezi rezultatul' : 'Următorul';
-}
-
-function urmator() {
-  idx++;
-  if (idx >= sesiune.length) return termina();
-  afiseaza();
-}
-
-function termina() {
-  $('game').hidden = true;
-  $('final').hidden = false;
-  $('scorFinal').textContent = `Scor final: ${scor} / ${sesiune.length}`;
-  const pct = scor / sesiune.length;
-  $('mesajFinal').textContent =
-    pct === 1 ? 'Perfect! Nimic nu îți scapă.' :
-    pct >= 0.7 ? 'Foarte bine! Ești atent, dar mai revizuiește greșelile de mai jos.' :
-    pct >= 0.4 ? 'Nu e rău, dar scammerii te-ar putea păcăli. Recitește secțiunea de informații.' :
-    'Ai nevoie de mai multă atenție. Citește secțiunea de informații și încearcă din nou.';
-
-  const g = $('greseli');
-  g.innerHTML = '';
-  if (greseli.length) {
-    const h = document.createElement('h3');
-    h.textContent = `Ce ai greșit (${greseli.length})`;
-    g.appendChild(h);
-    greseli.forEach(x => {
-      const d = document.createElement('div');
-      d.className = 'greseala';
-      const t = document.createElement('strong'); t.textContent = x.titlu;
-      const a = document.createElement('p'); a.textContent = x.alesul + '. ' + x.corect + '.';
-      const e = document.createElement('p'); e.textContent = x.expl;
-      d.append(t, a, e);
-      g.appendChild(d);
-    });
-  }
-}
-
-$('btnStart').addEventListener('click', porneste);
-$('btnReia').addEventListener('click', porneste);
-$('btnRaporteaza').addEventListener('click', () => { if (selectat !== null) raspunde(selectat); });
-$('btnOk').addEventListener('click', () => raspunde(-1));
-$('btnUrmator').addEventListener('click', urmator);
-</script>
+<script src="script.js"></script>
 </body>
 </html>
